@@ -1,0 +1,17 @@
+-- | This module holds the 'Object' data type, along with some utility functions
+-- for it.
+module Math.Knapsack.Data ( -- * Data Types
+                            Object(..)
+                            -- * Utility Functions
+                          , valuePerCost
+                          ) where
+
+-- | The 'Object' represents an object that could be put into the Knapsack.
+data Object = Object { id    :: Int -- ^ A unique identifier for the 'Object'.
+                     , value :: Int -- ^ The value of the 'Object'.
+                     , cost  :: Int -- ^ The cost of the 'Object'.
+                     } deriving (Eq, Show) 
+
+-- | Compute the weighted value of the given 'Object'.
+valuePerCost :: Fractional a => Object -> a
+valuePerCost (Object _ v c) = fromIntegral v / fromIntegral c

@@ -1,1 +1,4 @@
-module Math.Knapsack where
+module Math.Knapsack ( module Math.Knapsack.Data
+                     ) where
+
+import Math.Knapsack.Data
