@@ -23,7 +23,8 @@ library
                        transformers ==0.4.*,
                        bytestring ==0.10.*,
                        attoparsec ==0.11.*,
-                       directory ==1.2.*
+                       directory ==1.2.*,
+                       time ==1.4.2
   hs-source-dirs:      src
   ghc-options:         -Wall
   default-language:    Haskell2010
