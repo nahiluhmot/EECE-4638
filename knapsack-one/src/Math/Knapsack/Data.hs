@@ -10,8 +10,11 @@ module Math.Knapsack.Data ( -- * Data Types
 data Object = Object { id    :: Int -- ^ A unique identifier for the 'Object'.
                      , value :: Int -- ^ The value of the 'Object'.
                      , cost  :: Int -- ^ The cost of the 'Object'.
-                     } deriving (Eq, Show) 
+                     } deriving (Eq) 
 
 -- | Compute the weighted value of the given 'Object'.
 valuePerCost :: Fractional a => Object -> a
 valuePerCost (Object _ v c) = fromIntegral v / fromIntegral c
+
+instance Show Object where
+    show (Object i v c) = show i ++ " " ++ show v ++ " " ++ show c
