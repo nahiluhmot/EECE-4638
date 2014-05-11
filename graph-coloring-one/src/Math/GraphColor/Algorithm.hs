@@ -5,8 +5,8 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Math.GraphColor.Data
 import Pipes
-import System.Hourglass
-import Data.Hourglass
+--import System.Hourglass
+--import Data.Hourglass
 
 
 -- The GraphColorState is a list of nodes with a corresponding color, and the
@@ -34,40 +34,36 @@ runGraphColor :: [Edge] -> GraphColor a -> IO (a, GraphColorState)
 runGraphColor es action = flip runStateT defaultState . runReaderT action $ GraphColorEnv es
 
 subsequences :: Int -> Int -> Producer [Node] GraphColor ()
-subsequences numColors numNodes = do
+subsequences numColors numNodes =
     let colorList = [1..numColors]
         nodeList  = [0..numNodes]
-    each $ nodeLoop colorList nodeList
+    in  nodeLoop colorList nodeList
 
-colorLoop :: Int -> [Int] -> [Node]
-colorLoop _ []     = []
-colorLoop n (x:xs) = Node n x : colorLoop n xs
+colorLoop :: Monad m => Int -> [Int] -> Producer Node m ()
+colorLoop n cs = for (each cs) $ yield . Node n
 
-nodeLoop :: [Int] -> [Int] -> [[Node]]
-nodeLoop _  []      = [[]]
-nodeLoop cl (x:xs)  = concatMap singleMap $ colorLoop x cl
-    where nl = nodeLoop cl xs
-          singleMap z = map (z:) $ nl
+nodeLoop :: Monad m => [Int] -> [Int] -> Producer [Node] m ()
+nodeLoop cs =
+    let loop [] = yield []
+        loop (n:ns) =
+            for (colorLoop n cs) $ \node ->
+                for (loop ns) $ \nodes ->
+                    yield $ node : nodes
+    in  loop
 
 checkConflict :: Consumer [Node] GraphColor ()
 checkConflict = do
     es <- asks edges
     nodes <- await
-    edgeCs <- lift $ forM es $ \e -> do
-        left  <- findNode nodes (a e)
-        right <- findNode nodes (b e)
-        if color left == color right
-            then return 1
-            else return 0
-    let cs = sum edgeCs
-    originalCs <- gets conflicts
-    when (originalCs > cs) $ do
-        put $ GraphColorState nodes cs
-    checkConflict
-
-findNode :: [Node] -> Int -> GraphColor Node
-findNode ns nId = return $ head $ filter correctN ns
-    where correctN n = nodeId n == nId
+    unless (null nodes || (color (head nodes) > 1)) $ do
+        edgeCs <- lift $ forM es $ \e -> do
+            let left = nodes !! a e
+                right = nodes !! b e
+            return . fromEnum $ color left == color right
+        let cs = sum edgeCs
+        originalCs <- gets conflicts
+        when (originalCs > cs) . put $ GraphColorState nodes cs
+        unless (cs == 0) checkConflict
 
 tryListCombinations :: Int -> Int -> GraphColor ()
 tryListCombinations nc nn = runEffect $

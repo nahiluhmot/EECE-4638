@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
+
 module Main (main) where
 
 import Math.GraphColor
@@ -15,8 +17,7 @@ main = do
         return ()
 
 perform :: (Int, Int, Int, [Edge]) -> IO [Node]
-perform (nc, nn, ne, e) = do
-    findBest nc nn e
+perform (nc, nn, _, e) = findBest nc nn e
 
 parseError :: String -> IO [Node]
 parseError e = putStrLn e >> return []
