@@ -1,3 +1,6 @@
+{-# LANGUAGE OverlappingInstances,
+             FlexibleInstances #-}
+
 -- | This module holds the 'Edge' data type
 module Math.GraphColor.Data ( -- * Data Types
                               Edge(..)
@@ -9,6 +12,11 @@ data Edge = Edge { a :: Int
                  , b :: Int
                  } deriving (Eq, Show)
 
-data Node = Node { id :: Int
+data Node = Node { nodeId :: Int
                  , color :: Int
                  } deriving (Eq, Show)
+
+instance Show [Node] where
+    show []     = "Empty nodes"
+    show (x:[]) = show (color x)
+    show (x:xs) = show (color x) ++ ", " ++ show xs
