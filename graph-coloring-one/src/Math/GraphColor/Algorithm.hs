@@ -51,30 +51,19 @@ nodeLoop cl (x:xs)  = concatMap singleMap $ colorLoop x cl
 
 checkConflict :: Consumer [Node] GraphColor ()
 checkConflict = do
+    es <- asks edges
     nodes <- await
-    nodeCs <- lift $ forM nodes $ \n -> do
-        specificEs <- getNodeEdges n
-        currCs <- forM specificEs $ \e -> do
-            nextN <- case a e == nodeId n of
-                True  -> findNode nodes (b e)
-                False -> findNode nodes (a e)
-            if color nextN == color n
-                then return 1
-                else return 0
-        return $ sum currCs
-    let cs = sum nodeCs
+    edgeCs <- lift $ forM es $ \e -> do
+        left  <- findNode nodes (a e)
+        right <- findNode nodes (b e)
+        if color left == color right
+            then return 1
+            else return 0
+    let cs = sum edgeCs
     originalCs <- gets conflicts
     when (originalCs > cs) $ do
         put $ GraphColorState nodes cs
     checkConflict
-
-getNodeEdges :: Node -> GraphColor [Edge]
-getNodeEdges node = do
-    es <- asks edges
-    let n          = nodeId node
-        leftEdges  = filter (\x -> a x == n) es
-        rightEdges = filter (\x -> b x == n) es
-    return $ leftEdges ++ rightEdges
 
 findNode :: [Node] -> Int -> GraphColor Node
 findNode ns nId = return $ head $ filter correctN ns
