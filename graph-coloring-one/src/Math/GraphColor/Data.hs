@@ -17,6 +17,12 @@ data Node = Node { nodeId :: Int
                  } deriving (Eq, Show)
 
 instance Show [Node] where
-    show []     = "Empty nodes"
-    show (x:[]) = show (color x)
-    show (x:xs) = show (color x) ++ ", " ++ show xs
+    show = showNodes 0
+
+showNodes :: Int -> [Node] -> String
+showNodes _     []     = "Empty nodes"
+showNodes index (x:[]) = showNode index x
+showNodes index (x:xs) = showNode index x ++ "\n" ++ showNodes (index + 1) xs
+
+showNode :: Int -> Node -> String
+showNode i x = show i ++ "\t" ++ show (color x)

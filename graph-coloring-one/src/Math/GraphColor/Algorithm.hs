@@ -86,12 +86,9 @@ filterTime =
             when (eTime > cTime) $ yield elt >> loop eTime
     in  asks endTime >>= loop
 
-findBest :: Int -> Int -> [Edge] -> IO [Node]
+findBest :: Int -> Int -> [Edge] -> IO (Int, [Node])
 findBest nc nn es = do
-    putStrLn "Starting to build combinations"
     currentT <- timeCurrent
     let endT = timeAdd currentT runTime
     (_, s) <- runGraphColor es endT (tryListCombinations nc nn)
-    putStrLn $ "Finished running, only " ++ show (conflicts s) ++ " conflicts"
-    putStrLn $ "Colors: " ++ show (nodeColors s)
-    return $ nodeColors s
+    return (conflicts s, nodeColors s)

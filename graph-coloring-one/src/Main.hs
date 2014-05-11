@@ -13,11 +13,15 @@ main = do
         let filename = head args
         putStrLn "Parsing file"
         possibleGraph <- parseFile filename
-        either parseError perform possibleGraph
-        return ()
+        (conflicts, nodes) <- either parseError perform possibleGraph
+        putStrLn "------------------------------------------------"
+        putStrLn $ "Total conflicts: " ++ show conflicts
+        print nodes
 
-perform :: (Int, Int, Int, [Edge]) -> IO [Node]
-perform (nc, nn, _, e) = findBest nc nn e
+perform :: (Int, Int, Int, [Edge]) -> IO (Int, [Node])
+perform (nc, nn, _, e) = do
+    putStrLn $ "Looking for a solution with " ++ show nc ++ " colors"
+    findBest nc nn e
 
-parseError :: String -> IO [Node]
-parseError e = putStrLn e >> return []
+parseError :: String -> IO (Int, [Node])
+parseError e = putStrLn e >> return (maxBound, [])
