@@ -10,17 +10,23 @@ license:             MIT
 license-file:        LICENSE
 author:              Tom Hulihan, Todd Lunter
 maintainer:          hulihan.tom159@gmail.com, tlunter@gmail.com
--- copyright:           
 category:            Math
 build-type:          Simple
+-- TODO Add a README
 -- extra-source-files:  
 cabal-version:       >=1.10
 
-library
-  exposed-modules:     Math.Knapsack
+executable knapsack-one
+  main-is:             Main.hs
   build-depends:       base >=4.7 && <4.8,
-                       mtl ==2.2.*,
-                       transformers ==0.4.*
+                       mtl ==2.1.*,
+                       transformers ==0.3.*,
+                       bytestring ==0.10.*,
+                       attoparsec ==0.11.*,
+                       directory ==1.2.*,
+                       time ==1.4.2,
+                       hourglass ==0.1.*,
+                       pipes ==4.1.*
   hs-source-dirs:      src
-  ghc-options:         -Wall
+  ghc-options:         -Wall -O3
   default-language:    Haskell2010
