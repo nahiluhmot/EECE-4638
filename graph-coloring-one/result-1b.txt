@@ -1,0 +1,15 @@
+Tom Hulihan & Todd Lunter
+
+For simplicity's sake I'm going to define the following variables:
+    C: # of colors
+    N: # of nodes
+    V: # of edges
+
+To find the coloration of a graph that has the least number of conflicts, we used a brute force solution.
+Generating all possible colorations of the graph took O(N ^ C).
+This is because each distinct node has to be tried with each distinct color.
+As each graph is generated, we count how many conflicts exist in the graph.
+To do this, we looped through each edge, counting the number of conflicts between their nodes.
+This process took O(E).
+Therefore, the total algorithm has a time complexity of O((N ^ C) * E).
+Like the Knapsack problem, all of the possible combinatoins are lazily generated so the memory complexity is constant.
