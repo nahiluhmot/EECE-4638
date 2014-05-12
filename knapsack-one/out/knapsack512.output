@@ -1,8 +1,8 @@
 Parsing file
 Looking for set of objects less than 1330949
 ------------------------------------------------
-Total value: 171010
-Total cost: 146010
+Total value: 186417
+Total cost: 159417
 0 4701 3701
 1 1001 1
 2 7119 6119
@@ -28,3 +28,5 @@ Total cost: 146010
 22 10675 9675
 23 6325 5325
 24 10970 9970
+25 5000 4000
+26 10407 9407
