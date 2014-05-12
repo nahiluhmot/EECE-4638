@@ -19,11 +19,11 @@ Rather than having you install all dependencies for Haskell on your computer, we
     Location:          eece-4638.tlunter.com
     SSH Key:           aws-key.pem (aws-key.ppk for Putty)
     Project locations: /opt/eece-4638
-    
-    In each project directory, to build the source code, run:
-     
-        `make clean build`
 
-    To test the runtime, run:
-    
-        `make generate`
+In each project directory, to build the source code, run:
+ 
+    make clean build
+
+To test the runtime, run:
+
+    make generate
