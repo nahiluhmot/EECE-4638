@@ -1,5 +1,15 @@
 # EECE 4638
 
+## Dependencies
+
+    ghc
+    cabal
+
+## How to install local packages
+
+    cabal sandbox init
+    cabal install --only-dependencies
+
 ## How to build Haskell code
 
     cabal clean && cabal build
