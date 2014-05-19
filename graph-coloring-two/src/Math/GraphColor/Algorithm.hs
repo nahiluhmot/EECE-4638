@@ -6,6 +6,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Math.GraphColor.Data
 import Pipes
+import qualified Pipes.Prelude as P
 import System.Hourglass
 import Data.Hourglass
 import Data.Graph hiding (Node)
@@ -43,7 +44,7 @@ runGraphColor g nodes sortedNodes et action =
 
 greedyColors :: Int -> Int -> GraphColor ()
 greedyColors nc nn = runEffect $
-    allowableConflicts >-> pushColors nc >-> vertexes >-> checkConflicts >-> finishedColors nn >-> consume
+    allowableConflicts >-> pushColors nc >-> vertexes >-> checkConflicts >-> finishedColors nn >-> P.drain
 
 allowableConflicts :: Producer Int GraphColor ()
 allowableConflicts = do
@@ -59,7 +60,7 @@ pushColors nc = do
 vertexes :: Pipe (Int, Int) Vertex GraphColor ()
 vertexes = do
     (allowedCs, c) <- await
-    liftIO $ putStrLn $ "Color: " ++ show c
+    --liftIO $ putStrLn $ "Color: " ++ show c
     sNodes <- asks envSortedNodes
     g      <- asks envGraph
     for (each sNodes) $ \nVertex -> do
@@ -102,7 +103,7 @@ finishedColors nc = do
     let cs = nc - length (mapMaybe color (elems ns))
     when (cs > 0) $ do
         yield elt
-        liftIO $ putStrLn $ "Missing colors: " ++ show cs
+        --liftIO $ putStrLn $ "Missing colors: " ++ show cs
         finishedColors nc
 
 consume :: Consumer Vertex GraphColor ()
