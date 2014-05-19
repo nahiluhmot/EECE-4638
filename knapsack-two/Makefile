@@ -13,6 +13,9 @@ INPUTS=$(wildcard $(INPUT_DIR)/*.input)
 OUTPUTS=$(patsubst $(INPUT_DIR)/%.input, $(OUTPUT_DIR)/%.output, $(INPUTS))
 EXE=dist/build/knapsack-two/knapsack-two
 
+ZIP=hullun-2a.zip
+FILES=$(shell git ls-files)
+
 all: build
 
 clean:
@@ -25,6 +28,8 @@ build: $(EXE)
 
 generate: $(OUTPUTS)
 
+zip: $(ZIP)
+
 $(EXE): install
 	$(HC) $(BUILD_COMMAND) $(BUILD_FLAGS)
 
@@ -34,4 +39,7 @@ $(OUTPUT_DIR):
 $(OUTPUT_DIR)/%.output: $(INPUT_DIR)/%.input build $(OUTPUT_DIR)
 	$(EXE) $< > $@
 
-.PHONY: all clean install build generate
+$(ZIP): $(FILES)
+	zip $@ $<
+
+.PHONY: all clean install build generate zip
