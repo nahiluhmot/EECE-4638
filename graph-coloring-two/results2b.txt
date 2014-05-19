@@ -1,0 +1,9 @@
+Tom Hulihan & Todd Lunter
+
+For the second iteration of the graph coloring problem, we implemented a greedy algorithm to solve it.
+This algorithm should come up with the same or better results than the exhaustive search and also be much faster.
+The algorithm first sorts the graph nodes in order from most edges to least edges, which takes O(n * log(n)) time.
+The the algorithm loops through the number of colors, which is O(c).
+Then the algorithm loops through the sorted nodes, which is O(n) and determines the number of conflicts by looping through each of the edges, which is O(e).
+The nodes are stored in a bounded array separate from the graph implementation, so this algorithm has a O(n) memory complexity.
+The time complexity comes out to being O(n * log(n) + c * (n + e)), due to the multiple loops.
