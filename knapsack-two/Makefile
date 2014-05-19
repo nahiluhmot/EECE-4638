@@ -40,6 +40,6 @@ $(OUTPUT_DIR)/%.output: $(INPUT_DIR)/%.input build $(OUTPUT_DIR)
 	$(EXE) $< > $@
 
 $(ZIP): $(FILES)
-	zip $@ $<
+	zip -r $(ZIP) $(FILES)
 
 .PHONY: all clean install build generate zip
