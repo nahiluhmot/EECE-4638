@@ -3,17 +3,18 @@
 
 -- | This module holds the 'Edge' data type
 module Math.GraphColor.Data ( -- * Data Types
-                              Edge(..)
+                              Edge
                             , Node(..)
                             ) where
 
--- | The 'Edge' represents an edge between two nodes of the Graph.
-data Edge = Edge { a :: Int
-                 , b :: Int
-                 } deriving (Eq, Show)
+import Data.Graph
 
-data Node = Node { nodeId :: Int
-                 , color :: Int
+-- | The 'Edge' represents an edge between two nodes of the Graph.
+--data Edge = Edge { a :: Int
+--                 , b :: Int
+--                 } deriving (Eq, Show)
+
+data Node = Node { color :: Maybe Int
                  } deriving (Eq, Show)
 
 instance Show [Node] where

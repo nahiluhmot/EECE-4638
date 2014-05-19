@@ -22,7 +22,7 @@ edge = do
     spaces
     right <- natural
     spaces
-    return $ Edge left right
+    return (left, right)
 
 graph :: Parser (Int, Int, Int, [Edge])
 graph = do
