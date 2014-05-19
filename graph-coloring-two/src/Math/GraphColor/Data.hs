@@ -9,11 +9,6 @@ module Math.GraphColor.Data ( -- * Data Types
 
 import Data.Graph
 
--- | The 'Edge' represents an edge between two nodes of the Graph.
---data Edge = Edge { a :: Int
---                 , b :: Int
---                 } deriving (Eq, Show)
-
 data Node = Node { color :: Maybe Int
                  } deriving (Eq, Show)
 
@@ -26,4 +21,6 @@ showNodes index (x:[]) = showNode index x
 showNodes index (x:xs) = showNode index x ++ "\n" ++ showNodes (index + 1) xs
 
 showNode :: Int -> Node -> String
-showNode i x = show i ++ "\t" ++ show (color x)
+showNode i x = show i ++ "\t" ++ c (color x)
+    where c (Just y) = show y
+          c _        = "Nothing"
