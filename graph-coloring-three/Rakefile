@@ -1,0 +1,30 @@
+require 'rake'
+require 'erb'
+
+input_files = Dir["data/*"]
+ampl_file   = File.read("color.ampl.erb")
+
+compile_files = Dir["compile/*"]
+
+task 'compile' do
+  FileUtils.mkdir_p 'compile'
+  erb = ERB.new(ampl_file)
+  input_files.each do |file|
+    output_file = file.gsub(/^data\/(.*).dat$/,'compile/\1.ampl')
+    File.open(output_file, 'w') do |f|
+      f.write(erb.dup.result(binding))
+    end
+  end
+end
+
+task 'run' do
+  FileUtils.mkdir_p 'output'
+  compile_files.each do |file|
+    IO.popen(["ampl",file], :err=>[:child, :out]) do |io|
+      output_file = file.gsub(/^compile\/(.*).ampl$/,'output/\1.txt')
+      File.open(output_file, 'w') do |f|
+        f.write(io.read)
+      end
+    end
+  end
+end

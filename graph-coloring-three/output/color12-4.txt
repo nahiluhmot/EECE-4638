@@ -1,0 +1,23 @@
+CPLEX 12.6.0.0: time=600
+CPLEX solution status 101 with fixed integers:
+	optimal integer solution
+CPLEX 12.6.0.0: optimal integer solution; objective 0
+47 MIP simplex iterations
+0 branch-and-bound nodes
+No basis.
+color [*,*]
+:    0   1   2   3    :=
+0    1   0   0   0
+1    0   0   1   0
+2    1   0   0   0
+3    0   0   1   0
+4    1   0   0   0
+5    0   1   0   0
+6    0   1   0   0
+7    0   1   0   0
+8    0   0   0   1
+9    0   0   0   1
+10   0   1   0   0
+11   1   0   0   0
+;
+
