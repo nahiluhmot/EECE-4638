@@ -31,7 +31,7 @@ maximize sumOfValues: sum{i in 0..n-1} value[i] * isIncluded[i];
 subject to costBoundIsNotExceeded: sum{i in 0..n-1} cost[i] * isIncluded[i] <= costBound;
 
 data;
-include input/knapsack8.dat
+include data/knapsack28.dat
 solve;
 
 # Display each item in the knapsack

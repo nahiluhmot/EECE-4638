@@ -1,0 +1,24 @@
+CPLEX 12.6.0.0: time=600
+CPLEX 12.6.0.0: optimal integer solution; objective 4939
+5 MIP simplex iterations
+0 branch-and-bound nodes
+Items in the knapsack:
+ID	Cost	Value
+1	1	101
+2	119	219
+4	187	287
+7	690	790
+8	22	122
+9	613	713
+10	347	447
+12	522	622
+13	122	222
+14	730	830
+15	486	586
+
+costBound = 3839
+
+totalCost = 3839
+
+totalValue = 4939
+
