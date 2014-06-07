@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 
 -- | This module holds the actual algorithm to solve the Knapsack problem.
-module Math.Knapsack.Algorithm (findBest) where
+module Math.Knapsack.Algorithm where
 
 import Control.Monad.Reader
 import Control.Monad.State
@@ -17,6 +17,7 @@ import System.Hourglass
 data KnapsackState =
     KnapsackState { objects    :: [Object]
                   , totalValue :: Int
+                  , totalCost  :: Int
                   }
                   deriving (Eq, Show)
 
@@ -34,6 +35,7 @@ type Knapsack = ReaderT KnapsackEnv (StateT KnapsackState IO)
 defaultState :: KnapsackState
 defaultState = KnapsackState { objects = []
                              , totalValue = 0
+                             , totalCost = 0
                              }
 
 -- The length to process subsequences
@@ -46,46 +48,33 @@ runKnapsack action lim startTime = do
     let eTime = timeAdd startTime runTime
     flip runStateT defaultState . runReaderT action $ KnapsackEnv lim eTime
 
--- Try each subsequence of the given list.
-tryListCombinations :: [Object] -> Knapsack ()
-tryListCombinations objs = runEffect $
-    subsequences objs >-> filterHeavy >-> filterTime >-> P.mapM tryList >-> P.drain
-
--- Produce the subsequences of a list.
-subsequences :: Monad m => [a] -> Producer [a] m ()
-subsequences = 
-    let loop [] = return ()
-        loop (x:xs) = do
+subsequences :: Monad m => [x] -> Producer [x] m ()
+subsequences =
+    let go []      = return ()
+        go (x:xs) = do
             yield [x]
-            for (loop xs) $ \sub -> do
-                yield sub
-                yield $ x : sub
-    in  loop
+            for (go xs) $ \subseq -> do
+                yield (x : subseq)
+                yield subseq
+    in  go
 
--- | Filter out the objects that are too heavy.
-filterHeavy :: Pipe [Object] [Object] Knapsack ()
-filterHeavy = asks limit >>= \lim -> P.filter $ \objs -> lim > sum (map cost objs)
+bound :: Object -> KnapsackState -> Knapsack (Maybe KnapsackState)
+bound o@(Object _ v c) (KnapsackState os v' c') = do
+    lim <- asks limit
+    tv <- gets totalValue
+    let remainingWeight = fromIntegral (lim - c')
+        numberToInsert  = remainingWeight / fromIntegral c
+        newValue        = v' + round (numberToInsert * fromIntegral v)
+    if (newValue < tv) then
+        return Nothing
+    else
+        return $ Just (KnapsackState (o : os) (v + v') (c + c'))
 
--- Don't compute the computation run if time has run out.
-filterTime :: Pipe a a Knapsack ()
-filterTime =
-    let loop eTime = do
-            elt <- await
-            cTime <- liftIO timeCurrent
-            when (eTime > cTime) $ yield elt >> loop eTime
-    in  asks endTime >>= loop
-
--- Try a list.
-tryList :: [Object] -> Knapsack ()
-tryList os = do
-    val <- gets totalValue
-    let currVal = sum $ map value os
-    when (currVal > val) . put $ KnapsackState os currVal
 
 -- | Given a list, try to find the subsequence that will give the most value
 -- when put into the Knapsack.
 findBest :: [Object] -> Int -> IO [Object]
-findBest os lim = do
-    start <- timeCurrent
-    (_, s) <- runKnapsack (tryListCombinations os) lim start
-    return $ objects s
+findBest os _ = return os
+--    start <- timeCurrent
+--    (_, s) <- runKnapsack (tryListCombinations os) lim start
+--    return $ objects s
