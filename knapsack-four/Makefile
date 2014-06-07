@@ -11,7 +11,7 @@ INPUT_DIR=data
 OUTPUT_DIR=out
 INPUTS=$(wildcard $(INPUT_DIR)/*.input)
 OUTPUTS=$(patsubst $(INPUT_DIR)/%.input, $(OUTPUT_DIR)/%.output, $(INPUTS))
-EXE=dist/build/knapsack-one/knapsack-one
+EXE=dist/build/knapsack-four/knapsack-four
 
 all: build
 
