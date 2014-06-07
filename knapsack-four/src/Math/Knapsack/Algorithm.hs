@@ -7,9 +7,10 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.Hourglass
 import Data.Monoid
+import qualified Data.Foldable as F
+import Data.List (sortBy)
 import Math.Knapsack.Data
 import Pipes
-import qualified Pipes.Prelude as P
 import System.Hourglass
 
 -- The KnapsackState is a list of objects, along with a cached version of their
@@ -48,15 +49,30 @@ runKnapsack action lim startTime = do
     let eTime = timeAdd startTime runTime
     flip runStateT defaultState . runReaderT action $ KnapsackEnv lim eTime
 
-subsequences :: Monad m => [x] -> Producer [x] m ()
+tryListCombinations :: [Object] -> Knapsack ()
+tryListCombinations os = runEffect $ subsequences os' >-> boundCompare
+    where os' = sortBy (\a b -> valuePerCost b `compare` (valuePerCost a :: Double)) os
+
+subsequences :: [Object] -> Producer KnapsackState Knapsack ()
 subsequences =
-    let go []      = return ()
+    let yieldKnapsack os = do
+            let (o, ks) = knapsackFor os
+            ks' <- lift $ bound o ks
+            F.mapM_ yield ks'
+        go []      = return ()
         go (x:xs) = do
-            yield [x]
+            yieldKnapsack [x]
             for (go xs) $ \subseq -> do
-                yield (x : subseq)
-                yield subseq
+                let os = objects subseq
+                yieldKnapsack (x : os)
+                yieldKnapsack os
     in  go
+
+knapsackFor :: [Object] -> (Object, KnapsackState)
+knapsackFor os = (last os, KnapsackState os' v c)
+    where os' = init os
+          v   = sum $ map value os'
+          c   = sum $ map cost os'
 
 bound :: Object -> KnapsackState -> Knapsack (Maybe KnapsackState)
 bound o@(Object _ v c) (KnapsackState os v' c') = do
@@ -64,17 +80,25 @@ bound o@(Object _ v c) (KnapsackState os v' c') = do
     tv <- gets totalValue
     let remainingWeight = fromIntegral (lim - c')
         numberToInsert  = remainingWeight / fromIntegral c
-        newValue        = v' + round (numberToInsert * fromIntegral v)
-    if (newValue < tv) then
-        return Nothing
-    else
-        return $ Just (KnapsackState (o : os) (v + v') (c + c'))
+        newValue        = v' + round (numberToInsert * fromIntegral v :: Double)
+    return $ if newValue < tv
+        then Nothing
+        else Just (KnapsackState (o : os) (v + v') (c + c'))
 
+boundCompare :: Consumer KnapsackState Knapsack ()
+boundCompare = do
+    ks <- await
+    lim <- asks limit
+    tv <- gets totalValue
+    let c = totalCost ks
+        v = totalValue ks
+    when (c < lim && v > tv) $ put ks
+    boundCompare
 
 -- | Given a list, try to find the subsequence that will give the most value
 -- when put into the Knapsack.
 findBest :: [Object] -> Int -> IO [Object]
-findBest os _ = return os
---    start <- timeCurrent
---    (_, s) <- runKnapsack (tryListCombinations os) lim start
---    return $ objects s
+findBest os lim = do
+    start <- timeCurrent
+    (_, s) <- runKnapsack (tryListCombinations os) lim start
+    return $ objects s
