@@ -5,11 +5,12 @@ module Math.Knapsack.Algorithm where
 
 import Control.Monad.Reader
 import Control.Monad.State
+import Data.Function
 import Data.Hourglass
 import Data.Monoid
 import qualified Data.Foldable as F
 import Data.List (sortBy)
-import Math.Knapsack.Data
+import Math.Knapsack.Data as D
 import Pipes
 import System.Hourglass
 
@@ -50,8 +51,8 @@ runKnapsack action lim startTime = do
     flip runStateT defaultState . runReaderT action $ KnapsackEnv lim eTime
 
 tryListCombinations :: [Object] -> Knapsack ()
-tryListCombinations os = runEffect $ subsequences os' >-> boundCompare
-    where os' = sortBy (\a b -> valuePerCost b `compare` (valuePerCost a :: Double)) os
+tryListCombinations os = runEffect $ subsequences os' >-> filterTime >-> boundCompare
+    where os' = sortBy (\a b -> valuePerCost a `compare` (valuePerCost b :: Double)) os
 
 subsequences :: [Object] -> Producer KnapsackState Knapsack ()
 subsequences =
@@ -61,11 +62,11 @@ subsequences =
             F.mapM_ yield ks'
         go []      = return ()
         go (x:xs) = do
-            yieldKnapsack [x]
             for (go xs) $ \subseq -> do
                 let os = objects subseq
                 yieldKnapsack (x : os)
                 yieldKnapsack os
+            yieldKnapsack [x]
     in  go
 
 knapsackFor :: [Object] -> (Object, KnapsackState)
@@ -80,19 +81,25 @@ bound o@(Object _ v c) (KnapsackState os v' c') = do
     tv <- gets totalValue
     let remainingWeight = fromIntegral (lim - c')
         numberToInsert  = remainingWeight / fromIntegral c
-        newValue        = v' + round (numberToInsert * fromIntegral v :: Double)
-    return $ if newValue < tv
+        newValue        = v' + ceiling (numberToInsert * fromIntegral v :: Double)
+    return $ if newValue <= tv || c' + c > lim
         then Nothing
         else Just (KnapsackState (o : os) (v + v') (c + c'))
+
+-- Don't compute the computation run if time has run out.
+filterTime :: Pipe a a Knapsack ()
+filterTime =
+    let loop eTime = do
+            elt <- await
+            cTime <- liftIO timeCurrent
+            when (eTime > cTime) $ yield elt >> loop eTime
+    in  asks endTime >>= loop
 
 boundCompare :: Consumer KnapsackState Knapsack ()
 boundCompare = do
     ks <- await
-    lim <- asks limit
     tv <- gets totalValue
-    let c = totalCost ks
-        v = totalValue ks
-    when (c < lim && v > tv) $ put ks
+    when (totalValue ks > tv) $ put ks
     boundCompare
 
 -- | Given a list, try to find the subsequence that will give the most value
@@ -101,4 +108,5 @@ findBest :: [Object] -> Int -> IO [Object]
 findBest os lim = do
     start <- timeCurrent
     (_, s) <- runKnapsack (tryListCombinations os) lim start
-    return $ objects s
+    --return $ objects s
+    return . sortBy (compare `on` D.id) $ objects s
