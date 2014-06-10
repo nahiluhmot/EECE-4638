@@ -82,7 +82,7 @@ bound o@(Object _ v c) (KnapsackState os v' c') = do
     let remainingWeight = fromIntegral (lim - c')
         numberToInsert  = remainingWeight / fromIntegral c
         newValue        = v' + ceiling (numberToInsert * fromIntegral v :: Double)
-    return $ if newValue <= tv || c' + c > lim
+    return $ if c' + c > lim || newValue <= tv
         then Nothing
         else Just (KnapsackState (o : os) (v + v') (c + c'))
 

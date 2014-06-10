@@ -1,0 +1,11 @@
+Tom Hulihan & Todd Lunter
+
+For the fourth iteration of the Knapsack problem, we used a branch-and-bound algorithm to try to find a solution.
+We continue the idea of generating all the subsequences, but we fathom certain sets of subsequences if we know that we are unlikely to get a better answer from it.
+This only takes O(1) memory for generating all these subsequences since the subsets are lazily generated.
+Each subset is checked against the current best bound.
+Any fractional solution under the current best solution is elimated with all sub branches.
+Any non-fractional solution with weight over our limit was also elimated with all sub branches eliminated
+Then the non-fractional solution is checked against the current best, and kept if better.
+Because we can eliminate subsequences of items in the bag, we eliminate a lot of useless searching.
+This should still have a O(n*(2^n)) run time, but we are removing subsequences making the run time much faster
