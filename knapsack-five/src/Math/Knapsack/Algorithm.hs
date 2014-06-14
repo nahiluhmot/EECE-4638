@@ -1,6 +1,7 @@
 -- | This module holds the actual algorithm to solve the Knapsack problem.
-module Math.Knapsack.Algorithm (subsequences, findBest) where
+module Math.Knapsack.Algorithm (findBest) where
 
+import Control.Arrow (first, second)
 import Control.Monad.Reader
 import Data.Hourglass
 import Data.Monoid
@@ -8,15 +9,52 @@ import Data.List (sortBy, permutations)
 import Data.Function (on)
 import Math.Knapsack.Data
 import System.Hourglass
+import Pipes
+import qualified Pipes.Prelude as P
 
+-- This is the greedy solution to the knapsack problem
 greedySolution :: Int -> [Object] -> ([Object], [Object])
 greedySolution lim = takeMaximum  lim . sort'
 
+-- Shuffle a list of objects
 shuffle :: Int -> [Object] -> ([Object], [Object])
 shuffle lim os = takeMaximum lim $ permutations os !! (length os * length os)
 
+-- Sort a list of objects by their value density
 sort' :: [Object] -> [Object]
 sort' = sortBy (compare `on` valuePerCost)
+
+-- Find all of the subsequences
+subsequences' :: Monad m => [a] -> Producer ([a], [a]) m ()
+subsequences' =
+    let go [] = yield ([], [])
+        go (x:xs) =
+            for (go xs) $ \(ys, zs) -> do
+                yield (ys, x : zs)
+                yield (x : ys, zs)
+    in  go
+
+-- Find all of the neighbors
+neighbors :: Monad m => Int -> Int -> ([Object], [Object]) -> Producer ([Object], [Object]) m ()
+neighbors lim n (inKnapsack, outKnapsack) = do
+    let inKnapsack' = drop n $ sort' inKnapsack
+    for (subsequences' outKnapsack) $ \(nextIn, nextOut) -> do
+        let (inGroup, outGroup) = takeMaximum lim . sort' $ inKnapsack' ++ nextIn
+        yield (inGroup, outGroup ++ nextOut)
+
+-- Find the best neighbor within the given bounds
+bestNeighbor :: Monad m => Int -> Int -> ([Object], [Object]) -> m ([Object], [Object])
+bestNeighbor lim n os =
+    let rightSize (xs, _) = sum (map cost xs) <= lim
+        takeBest best@(v, _, _) (ys, zs)
+            | tv > v = (tv, ys, zs)
+            | otherwise = best
+            where tv = sum $ map value ys
+     in  liftM (\(_, a, b) -> (a, b)) $
+             P.fold takeBest
+                    (0, [], [])
+                    Prelude.id
+                    (neighbors lim n os >-> P.filter rightSize)
 
 -- Given the limit and list of objects, return a tuple containing the objects
 -- in the knapsack, and the objects not in the knapsack
@@ -27,34 +65,8 @@ takeMaximum limit =
             |   otherwise = (t, os, o : os')
     in  (\(_, a, b) -> (a, b)) . foldl (insertIf limit) (0, [], [])
 
-neighbors :: Int -> Int -> ([Object], [Object]) -> [([Object], [Object])]
-neighbors lim n (inKnapsack, outKnapsack) =
-    let inKnapsack' = drop n $ sort' inKnapsack
-    in  map (\(inGroup, outGroup) ->
-                let (inGroup', outGroup') = takeMaximum lim $ sort' inGroup
-                in  (inGroup', outGroup' ++ outGroup)) $
-            map (\(inGroup, outGroup) -> (inGroup ++ inKnapsack', outGroup))
-                (subsequences outKnapsack)
-
-subsequences :: [a] -> [([a], [a])]
-subsequences =
-    let go [] = []
-        go [x] = [([x], [])]
-        go (x:xs) = ([x], xs) :
-                    map (\(ys, zs) -> (ys, x : zs)) (go xs) ++
-                    map (\(ys, zs) -> (x : ys, zs)) (go xs)
-    in  go
-
-bestNeighbor :: Int -> Int -> ([Object], [Object]) -> ([Object], [Object])
-bestNeighbor lim i o =
-    let k neighbor (os, n)
-            | tc > lim  = (os, n)
-            | tv < n    = (os, n)
-            | otherwise = (neighbor, tv)
-            where tc = sum . map cost . fst $ neighbor
-                  tv = sum . map value . fst $ neighbor
-    in  fst . foldr k (([], []), 0) $ neighbors lim i o
-
+-- Given a limit, number of "opts" a list of objects in the knapsack, and a
+-- list of objects out of the knapsack, try to find the best solution.
 steepestDescent :: Int -> Int -> ([Object], [Object]) -> IO [Object]
 steepestDescent limit n os' =
     let go os endTime = do
@@ -62,7 +74,7 @@ steepestDescent limit n os' =
             if now > endTime then
                 return $ fst os
             else do
-                let neighbor = bestNeighbor limit n os
+                neighbor <- bestNeighbor limit n os
                 if sum (map value (fst neighbor)) < sum (map value (fst os)) then
                     return $ fst os
                 else
