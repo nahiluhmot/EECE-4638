@@ -21,7 +21,7 @@ main = do
 perform :: (Int, Int, [Object]) -> IO [Object]
 perform (_, c, os) = do
     putStrLn $ "Looking for set of objects less than " ++ show c
-    return $ findBest os c
+    findBest os c
 
 parseError :: String -> IO [Object]
 parseError e = putStrLn e >> return []
