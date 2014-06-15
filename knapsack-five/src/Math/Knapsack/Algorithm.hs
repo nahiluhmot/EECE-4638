@@ -24,27 +24,32 @@ shuffle lim os = takeMaximum lim $ permutations os !! (length os * length os)
 sort' :: [Object] -> [Object]
 sort' = sortBy (compare `on` valuePerCost)
 
+runTime :: TimeDiff
+runTime = mempty { timeDiffMinutes = 10 }
+
 -- Find all of the subsequences
-subsequences' :: Monad m => [a] -> Producer ([a], [a]) m ()
-subsequences' =
+subsequences' :: (Monad m, MonadIO m) => Elapsed -> [a] -> Producer ([a], [a]) m ()
+subsequences' endTime =
     let go [] = yield ([], [])
         go (x:xs) =
             for (go xs) $ \(ys, zs) -> do
-                yield (ys, x : zs)
-                yield (x : ys, zs)
+                ct <- liftIO timeCurrent
+                when (ct < endTime) $ do
+                    yield (ys, x : zs)
+                    yield (x : ys, zs)
     in  go
 
 -- Find all of the neighbors
-neighbors :: Monad m => Int -> Int -> ([Object], [Object]) -> Producer ([Object], [Object]) m ()
-neighbors lim n (inKnapsack, outKnapsack) = do
+neighbors :: (Monad m, MonadIO m) => Int -> Int -> ([Object], [Object]) -> Elapsed -> Producer ([Object], [Object]) m ()
+neighbors lim n (inKnapsack, outKnapsack) endTime = do
     let inKnapsack' = drop n $ sort' inKnapsack
-    for (subsequences' outKnapsack) $ \(nextIn, nextOut) -> do
+    for (subsequences' endTime outKnapsack) $ \(nextIn, nextOut) -> do
         let (inGroup, outGroup) = takeMaximum lim . sort' $ inKnapsack' ++ nextIn
         yield (inGroup, outGroup ++ nextOut)
 
 -- Find the best neighbor within the given bounds
-bestNeighbor :: Monad m => Int -> Int -> ([Object], [Object]) -> m ([Object], [Object])
-bestNeighbor lim n os =
+bestNeighbor :: (Monad m, MonadIO m) => Int -> Int -> ([Object], [Object]) -> Elapsed -> m ([Object], [Object])
+bestNeighbor lim n os endTime =
     let rightSize (xs, _) = sum (map cost xs) <= lim
         takeBest best@(v, _, _) (ys, zs)
             | tv > v = (tv, ys, zs)
@@ -54,7 +59,7 @@ bestNeighbor lim n os =
              P.fold takeBest
                     (0, [], [])
                     Prelude.id
-                    (neighbors lim n os >-> P.filter rightSize)
+                    (neighbors lim n os endTime >-> P.filter rightSize)
 
 -- Given the limit and list of objects, return a tuple containing the objects
 -- in the knapsack, and the objects not in the knapsack
@@ -74,12 +79,12 @@ steepestDescent limit n os' =
             if now > endTime then
                 return $ fst os
             else do
-                neighbor <- bestNeighbor limit n os
+                neighbor <- bestNeighbor limit n os endTime
                 if sum (map value (fst neighbor)) < sum (map value (fst os)) then
                     return $ fst os
                 else
                     go neighbor endTime
-    in  liftM (`timeAdd` mempty { timeDiffMinutes = 10 }) timeCurrent >>= go os'
+    in  liftM (`timeAdd` runTime) timeCurrent >>= go os'
 
 -- | Given a list, try to find the subsequence that will give the most value
 -- when put into the Knapsack.
