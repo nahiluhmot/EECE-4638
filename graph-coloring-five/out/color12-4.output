@@ -1,0 +1,17 @@
+Parsing file
+Looking for a solution with 4 colors
+Greedy solution with 2-opt was the best
+------------------------------------------------
+Total conflicts: 0
+0	2
+1	3
+2	1
+3	0
+4	1
+5	2
+6	2
+7	1
+8	3
+9	1
+10	2
+11	0
