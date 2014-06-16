@@ -1,0 +1,8 @@
+Tom Hulihan & Todd Lunter
+
+For this final iteration of the knapsack problem, we used a greedy solution and another random solution,
+plus steepest descent to find our solutions.
+We first find a solution using the greedy or a random knapsack.
+Then we apply 2-opt or 3-opt by removing two or three of the items from the knapsack, and then trying all the remaining items to maximize the value within the limit.
+The knapsack with the highest value wins.
+We tended to notice that greedy worked for the smaller examples that were more concrete, but the random algorithm worked better for the larger solutions.
