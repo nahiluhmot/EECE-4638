@@ -63,7 +63,7 @@ findBestFromNeighbors :: Int -> Int -> Int -> GraphColor ()
 findBestFromNeighbors nc nn opt =
     let go cs = do
             gs <- gets graphNodes
-            runEffect $ generateNeighbors (assocs gs) opt >-> fillInColors nc >-> validateSolution nn
+            runEffect $ generateNeighbors (assocs gs) opt >-> filterTime >-> fillInColors nc >-> validateSolution nn
             newCs <- gets conflicts
             when (newCs < cs) $ go newCs
     in do
