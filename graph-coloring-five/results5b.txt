@@ -1,0 +1,11 @@
+Tom Hulihan & Todd Lunter
+
+For this final iteration of the graph coloring problem, we used the greedy solution and another random solution,
+plus steepest descent to find our solutions.
+We first find a solution using the greedy or the random coloring.
+Then we apply 2-opt or 3-opt by removing two or three of the colors from the nodes and trying all possible colors and seeing which one fits the best.
+We then compare the number of conflicts of the graphs and take the one with the least and declare that one the best solution.
+The results show that it doesn't really seem to work well for this problem.
+The greedy solution that we're using tends to find the graph with almost the least number of conflicts.
+A way to make this better would be to change the problem from minimizing the number of conflicts and limiting the colors,
+to minimizing the number of colors used.
