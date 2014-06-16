@@ -13,7 +13,7 @@ INPUTS=$(wildcard $(INPUT_DIR)/*.input)
 OUTPUTS=$(patsubst $(INPUT_DIR)/%.input, $(OUTPUT_DIR)/%.output, $(INPUTS))
 EXE=dist/build/knapsack-five/knapsack-five
 
-ZIP=hullun-5.zip
+ZIP=hullun-5a.zip
 FILES=$(shell git ls-files)
 
 all: build

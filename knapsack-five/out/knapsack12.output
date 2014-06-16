@@ -1,0 +1,14 @@
+Parsing file
+Looking for set of objects less than 2187
+Greedy 2-opt was the best
+------------------------------------------------
+Total value: 2978
+Total cost: 2178
+1 101 1
+8 122 22
+2 219 119
+4 287 187
+10 447 347
+5 467 367
+0 622 522
+9 713 613
